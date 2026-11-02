@@ -14,7 +14,7 @@ answer. Don't start the next stage until he says so.**
 
 ## Current status
 - [x] Stage 1: infra + ingestion API (see docs/stage-1.md)
-- [ ] Stage 2: worker + storage
+- [x] Stage 2: worker + storage (see docs/stage-2.md)
 - [ ] Stage 3: Luau SDK
 - [ ] Stage 4: dashboard
 - [ ] Stage 5: load test + polish
@@ -70,6 +70,10 @@ player_id, type, timestamp (epoch ms), properties. The schemas live in
    A small example place to test in Studio. If Studio can't reach localhost, set
    up a tunnel and explain how. Document how to enable HttpService. Consider gzip
    request bodies.
+   - Carry-over from Stage 2: the worker treats a server that sends nothing for 5
+     minutes as crashed and ends its sessions, so the SDK must send something
+     (a heartbeat) every minute or so even when idle. It should also send
+     player_join for players already in the server when the SDK starts.
 4. **Dashboard.** Choose a game, then show live players online, daily active
    users, a day-1/day-7 retention chart, revenue, and a live event feed. The
    dashboard API reads from the rollup tables, not raw events.
@@ -93,7 +97,7 @@ player_id, type, timestamp (epoch ms), properties. The schemas live in
   tests until they pass, and start the services to check they work end to end.
 - Put a short teaching walkthrough for each stage in `docs/stage-N.md`.
 - Commands: `npm run infra:up`, `npm run migrate`, `npm run create-game -- <id> "Name"`,
-  `npm run dev:api`, `npm test`, `npm run lint`, `npm run typecheck`.
+  `npm run dev:api`, `npm run dev:worker`, `npm test`, `npm run lint`, `npm run typecheck`.
 
 ## Git rules
 - Commit as **Hayden Ho <hydnho@gmail.com>** (set with `git config` in this repo,

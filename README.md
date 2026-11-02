@@ -22,6 +22,7 @@ npm run infra:up            # Postgres 16 on :5433, Redis 7 on :6380
 npm run migrate
 npm run create-game -- my-obby "My Obby"   # prints an API key once
 npm run dev:api             # http://127.0.0.1:8080
+npm run dev:worker          # in a second terminal: stream -> Postgres
 npm test
 ```
 
@@ -34,9 +35,9 @@ use `npm.cmd` in place of `npm`, or run
 | Package             | What it is                                                     |
 | ------------------- | -------------------------------------------------------------- |
 | `packages/shared`   | Event schemas (zod) and stream format, shared by API and worker |
-| `packages/db`       | SQL migrations, migration runner, API key helpers               |
+| `packages/db`       | SQL migrations (events, rollups), migration runner, API keys    |
 | `packages/api`      | Fastify ingestion API                                           |
-| `packages/worker`   | Stage 2                                                         |
+| `packages/worker`   | Consumer-group worker: stores events, builds rollups            |
 | `packages/sdk-luau` | Stage 3                                                         |
 | `packages/dashboard`| Stage 4                                                         |
 | `packages/loadgen`  | Stage 5                                                         |

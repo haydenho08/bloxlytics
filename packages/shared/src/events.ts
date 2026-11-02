@@ -118,8 +118,21 @@ export const eventBatch = z.object({
   events: z.array(gameEvent).min(1).max(MAX_BATCH_SIZE),
 });
 
+/**
+ * "This server is still alive." Sent by the SDK when it has had nothing else to
+ * send for a while. Without it, the worker can't tell a quiet server from a
+ * crashed one, and ends the sessions of players who are still playing.
+ */
+export const serverHeartbeat = z.object({
+  game_id: gameId,
+  server_id: serverId,
+  /** How many players the server has right now. Kept for debugging session counts. */
+  players: z.number().int().nonnegative().max(1000),
+});
+
 /** An event after validation and normalisation. */
 export type GameEvent = z.output<typeof gameEvent>;
+export type ServerHeartbeat = z.output<typeof serverHeartbeat>;
 export type EventBatch = z.output<typeof eventBatch>;
 /** What a game server sends, before defaults/normalisation. */
 export type GameEventInput = z.input<typeof gameEvent>;

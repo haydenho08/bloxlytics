@@ -1,4 +1,3 @@
-import { STREAM_EVENT_FIELD } from "@gamepulse/shared";
 import type { Redis, Result } from "ioredis";
 
 // Both scripts run inside Redis as a single atomic step. Nothing else can touch
@@ -46,19 +45,20 @@ return {allowed, retry_ms, math.floor(tokens)}
 
 /**
  * Backpressure check + enqueue. KEYS[1] = stream. ARGV[1] = max pending,
- * ARGV[2..n] = one JSON event each. Returns the number added, or -1 if the
- * stream is too full (nothing is added in that case).
+ * ARGV[2] = field name (what kind of entry), ARGV[3..n] = one JSON entry each.
+ * Returns the number added, or -1 if the stream is too full (nothing is added
+ * in that case).
  *
  * All-or-nothing: a batch is never half-enqueued, so a retry after an error
  * can't leave the first half of a batch in twice and the second half missing.
  */
 const ENQUEUE = `
-local count = #ARGV - 1
+local count = #ARGV - 2
 if redis.call('XLEN', KEYS[1]) + count > tonumber(ARGV[1]) then
   return -1
 end
-for i = 2, #ARGV do
-  redis.call('XADD', KEYS[1], '*', '${STREAM_EVENT_FIELD}', ARGV[i])
+for i = 3, #ARGV do
+  redis.call('XADD', KEYS[1], '*', ARGV[2], ARGV[i])
 end
 return count
 `;
@@ -71,7 +71,7 @@ declare module "ioredis" {
       burst: number,
       cost: number,
     ): Result<[number, number, number], Context>;
-    gpEnqueue(stream: string, maxPending: number, ...events: string[]): Result<number, Context>;
+    gpEnqueue(stream: string, maxPending: number, field: string, ...entries: string[]): Result<number, Context>;
   }
 }
 

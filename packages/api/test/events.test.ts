@@ -1,4 +1,5 @@
-import { STREAM_EVENT_FIELD, type StreamEvent } from "@gamepulse/shared";
+import { gzipSync } from "node:zlib";
+import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD, type StreamEvent } from "@gamepulse/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createRedis } from "../src/redis.ts";
 import { createTestEnv, GAME_ID, makeBatch, makeEvent, OTHER_GAME_ID, type TestEnv } from "./helpers.ts";
@@ -224,5 +225,62 @@ describe("health", () => {
     expect(res.statusCode).toBe(503);
     expect(res.json().checks.redis).toBe("error");
     deadRedis.disconnect();
+  });
+});
+
+describe("gzip request bodies", () => {
+  function postGzip(app: ReturnType<TestEnv["build"]>, body: Buffer, encoding = "gzip") {
+    return app.inject({
+      method: "POST",
+      url: "/v1/events",
+      headers: { "x-api-key": env.apiKey, "content-type": "application/json", "content-encoding": encoding },
+      payload: body,
+    });
+  }
+
+  it("accepts a gzip-compressed batch", async () => {
+    const batch = makeBatch(50);
+    const compressed = gzipSync(JSON.stringify(batch));
+    const res = await postGzip(env.build(), compressed);
+    expect(res.statusCode).toBe(202);
+    expect(res.json()).toEqual({ accepted: 50 });
+    expect(compressed.length).toBeLessThan(JSON.stringify(batch).length / 2);
+  });
+
+  it("rejects a body that decompresses past the size limit with 413", async () => {
+    // ~5 KB of gzip that expands to 20 MB: a zip bomb.
+    const bomb = gzipSync(`{"events":[],"pad":"${"x".repeat(20 * 1024 * 1024)}"}`);
+    const res = await postGzip(env.build(), bomb);
+    expect(res.statusCode).toBe(413);
+    expect(await env.redis.xlen(STREAM)).toBe(0);
+  });
+
+  it("rejects corrupt gzip with 400 and unknown encodings with 415", async () => {
+    expect((await postGzip(env.build(), Buffer.from("definitely not gzip"))).statusCode).toBe(400);
+    expect((await postGzip(env.build(), Buffer.from("{}"), "br")).statusCode).toBe(415);
+  });
+});
+
+describe("POST /v1/heartbeat", () => {
+  function heartbeat(app: ReturnType<TestEnv["build"]>, body: object, apiKey = env.apiKey) {
+    return app.inject({ method: "POST", url: "/v1/heartbeat", headers: { "x-api-key": apiKey }, payload: body });
+  }
+
+  it("puts a heartbeat entry on the stream", async () => {
+    const res = await heartbeat(env.build(), { game_id: GAME_ID, server_id: "server-1", players: 3 });
+    expect(res.statusCode).toBe(202);
+    const entries = await env.redis.xrange(STREAM, "-", "+");
+    const fields = entries[0]![1];
+    expect(fields[0]).toBe(STREAM_HEARTBEAT_FIELD);
+    expect(JSON.parse(fields[1]!)).toMatchObject({ game_id: GAME_ID, server_id: "server-1", players: 3 });
+  });
+
+  it("checks the key, the body and the game", async () => {
+    const app = env.build();
+    const ok = { game_id: GAME_ID, server_id: "server-1", players: 0 };
+    expect((await heartbeat(app, ok, "gp_" + "A".repeat(43))).statusCode).toBe(401);
+    expect((await heartbeat(app, { game_id: GAME_ID })).statusCode).toBe(400);
+    expect((await heartbeat(app, { ...ok, game_id: OTHER_GAME_ID })).statusCode).toBe(403);
+    expect(await env.redis.xlen(STREAM)).toBe(0);
   });
 });

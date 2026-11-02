@@ -1,0 +1,41 @@
+name: gamepulse
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gamepulse
+      POSTGRES_PASSWORD: gamepulse
+      POSTGRES_DB: gamepulse
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs once, on first start with an empty volume: creates the test database
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # -h 127.0.0.1 forces TCP. During first-time init Postgres runs a temporary
+      # socket-only server, so a socket check would report healthy too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U gamepulse -d gamepulse"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    # AOF persistence: the stream is our queue, so a Redis restart must not lose
+    # events the API already answered 202 for. everysec = lose at most ~1s on crash.
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:
+  redisdata:

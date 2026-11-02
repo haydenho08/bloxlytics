@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/shared",
     "packages/db",
-    "packages/api"
+    "packages/api",
+    "packages/worker"
   ],
   "engines": {
     "node": ">=22"
@@ -16,6 +17,7 @@
     "migrate": "npm run migrate -w @gamepulse/db",
     "create-game": "npm run create-game -w @gamepulse/db --",
     "dev:api": "npm run dev -w @gamepulse/api",
+    "dev:worker": "npm run dev -w @gamepulse/worker",
     "typecheck": "tsc -p .",
     "lint": "eslint .",
     "test": "vitest run",

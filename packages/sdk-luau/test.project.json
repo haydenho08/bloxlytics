@@ -1,0 +1,14 @@
+{
+  "name": "GamePulse Tests",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "GamePulse": {
+        "$path": "src/GamePulse"
+      },
+      "Tests": {
+        "$path": "tests"
+      }
+    }
+  }
+}

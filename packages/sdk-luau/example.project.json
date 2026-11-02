@@ -1,0 +1,42 @@
+{
+  "name": "GamePulse Example",
+  "tree": {
+    "$className": "DataModel",
+    "HttpService": {
+      "$properties": {
+        "HttpEnabled": true
+      }
+    },
+    "ServerScriptService": {
+      "GamePulse": {
+        "$path": "src/GamePulse"
+      },
+      "Analytics": {
+        "$path": "example/Analytics.server.luau"
+      }
+    },
+    "Workspace": {
+      "Checkpoint": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Size": [
+            6,
+            1,
+            6
+          ],
+          "Position": [
+            0,
+            0.5,
+            -20
+          ],
+          "Color": [
+            0.2,
+            0.8,
+            0.3
+          ]
+        }
+      }
+    }
+  }
+}

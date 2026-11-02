@@ -33,9 +33,12 @@ const serverId = z.string().min(1).max(64);
 const playerId = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 
 // Unix epoch milliseconds (DateTime.now().UnixTimestampMillis in Luau).
-const timestamp = z
-  .number()
-  .int()
+const epochMs = z.number().int();
+
+// The clock checks are about when the API receives an event. The worker uses the
+// same schemas without them: it may read an entry hours later (a backlog, a
+// redelivery), and an event that was fresh on arrival mustn't turn "too old".
+const clockCheckedTimestamp = epochMs
   .refine((t) => t <= Date.now() + MAX_FUTURE_SKEW_MS, "is too far in the future")
   .refine((t) => t >= Date.now() - MAX_EVENT_AGE_MS, "is too old");
 
@@ -46,53 +49,70 @@ const fitsSizeLimit = [
 
 const jsonProperties = z.record(z.string().max(64), z.json()).refine(...fitsSizeLimit);
 
-const base = {
-  event_id: eventId,
-  game_id: gameId,
-  server_id: serverId,
-  player_id: playerId,
-  timestamp,
-};
+/** Builds the four event schemas around a given timestamp rule. */
+function eventSchemas<T extends z.ZodType<number, number>>(timestamp: T) {
+  const base = {
+    event_id: eventId,
+    game_id: gameId,
+    server_id: serverId,
+    player_id: playerId,
+    timestamp,
+  };
 
-export const playerJoinEvent = z.object({
-  ...base,
-  type: z.literal("player_join"),
-  properties: jsonProperties.default({}),
-});
+  const playerJoin = z.object({
+    ...base,
+    type: z.literal("player_join"),
+    properties: jsonProperties.default({}),
+  });
 
-export const playerLeaveEvent = z.object({
-  ...base,
-  type: z.literal("player_leave"),
-  properties: jsonProperties.default({}),
-});
+  const playerLeave = z.object({
+    ...base,
+    type: z.literal("player_leave"),
+    properties: jsonProperties.default({}),
+  });
 
-// Revenue rollups (Stage 2) depend on these fields, so they're required and typed.
-// Anything extra the game wants to attach is kept, as long as it's JSON.
-export const purchaseEvent = z.object({
-  ...base,
-  type: z.literal("purchase"),
-  properties: z
-    .object({
-      product_id: z.union([z.string().min(1).max(64), z.number().int().nonnegative()]),
-      robux: z.number().int().nonnegative(),
-    })
-    .catchall(z.json())
-    .refine(...fitsSizeLimit),
-});
+  // Revenue rollups depend on these fields, so they're required and typed.
+  // Anything extra the game wants to attach is kept, as long as it's JSON.
+  const purchase = z.object({
+    ...base,
+    type: z.literal("purchase"),
+    properties: z
+      .object({
+        product_id: z.union([z.string().min(1).max(64), z.number().int().nonnegative()]),
+        robux: z.number().int().nonnegative(),
+      })
+      .catchall(z.json())
+      .refine(...fitsSizeLimit),
+  });
 
-export const customEvent = z.object({
-  ...base,
-  type: z.literal("custom"),
-  name: z.string().regex(/^[A-Za-z0-9_.:-]{1,64}$/, "must be 1-64 chars of [A-Za-z0-9_.:-]"),
-  properties: jsonProperties.default({}),
-});
+  const custom = z.object({
+    ...base,
+    type: z.literal("custom"),
+    name: z.string().regex(/^[A-Za-z0-9_.:-]{1,64}$/, "must be 1-64 chars of [A-Za-z0-9_.:-]"),
+    properties: jsonProperties.default({}),
+  });
 
-export const gameEvent = z.discriminatedUnion("type", [
-  playerJoinEvent,
-  playerLeaveEvent,
-  purchaseEvent,
-  customEvent,
-]);
+  return {
+    playerJoin,
+    playerLeave,
+    purchase,
+    custom,
+    any: z.discriminatedUnion("type", [playerJoin, playerLeave, purchase, custom]),
+  };
+}
+
+const received = eventSchemas(clockCheckedTimestamp);
+
+export const playerJoinEvent = received.playerJoin;
+export const playerLeaveEvent = received.playerLeave;
+export const purchaseEvent = received.purchase;
+export const customEvent = received.custom;
+
+/** What the API accepts: every rule, including the clock checks. */
+export const gameEvent = received.any;
+
+/** Every rule except the clock checks. The worker re-checks stream entries with this. */
+export const storedGameEvent = eventSchemas(epochMs).any;
 
 export const eventBatch = z.object({
   events: z.array(gameEvent).min(1).max(MAX_BATCH_SIZE),

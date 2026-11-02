@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { MAX_EVENT_AGE_MS, MAX_PROPERTIES_BYTES, gameEvent } from "../src/index.ts";
+import {
+  decodeStreamEvent,
+  encodeStreamEvent,
+  gameEvent,
+  MAX_EVENT_AGE_MS,
+  MAX_PROPERTIES_BYTES,
+} from "../src/index.ts";
 
 const valid = {
   event_id: "8F1A6C2E-3B4D-4E5F-9A0B-1C2D3E4F5A6B",
@@ -48,5 +54,24 @@ describe("gameEvent schema", () => {
     expect(gameEvent.safeParse({ ...purchase, properties: { product_id: 1, robux: 99 } }).success).toBe(true);
     expect(gameEvent.safeParse({ ...purchase, properties: { product_id: 1, robux: -5 } }).success).toBe(false);
     expect(gameEvent.safeParse({ ...purchase, properties: { product_id: 1, robux: 9.99 } }).success).toBe(false);
+  });
+});
+
+describe("stream encoding", () => {
+  it("round-trips an event through the stream format", () => {
+    const e = gameEvent.parse(valid);
+    expect(decodeStreamEvent(encodeStreamEvent(e, 1234))).toEqual({ ...e, received_at: 1234 });
+  });
+
+  it("does not re-apply the clock checks when the worker reads an entry late", () => {
+    const old = gameEvent.parse(valid);
+    const json = encodeStreamEvent({ ...old, timestamp: Date.now() - MAX_EVENT_AGE_MS - 60_000 }, Date.now());
+    expect(() => decodeStreamEvent(json)).not.toThrow();
+  });
+
+  it("rejects entries that are not valid events", () => {
+    expect(() => decodeStreamEvent("{oops")).toThrow();
+    expect(() => decodeStreamEvent(JSON.stringify({ ...valid, received_at: 1, player_id: -1 }))).toThrow();
+    expect(() => decodeStreamEvent(JSON.stringify(valid))).toThrow(); // no received_at
   });
 });

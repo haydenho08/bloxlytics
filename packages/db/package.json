@@ -1,0 +1,20 @@
+{
+  "name": "@gamepulse/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate": "tsx --env-file-if-exists=../../.env scripts/migrate.ts",
+    "create-game": "tsx --env-file-if-exists=../../.env scripts/create-game.ts"
+  },
+  "dependencies": {
+    "@gamepulse/shared": "*",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

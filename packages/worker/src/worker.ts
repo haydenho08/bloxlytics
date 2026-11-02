@@ -1,12 +1,19 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { decodeStreamEvent, STREAM_EVENT_FIELD, type StreamEvent } from "@gamepulse/shared";
+import {
+  decodeStreamEvent,
+  decodeStreamHeartbeat,
+  STREAM_EVENT_FIELD,
+  STREAM_HEARTBEAT_FIELD,
+  type StreamEvent,
+  type StreamHeartbeat,
+} from "@gamepulse/shared";
 import type { Redis } from "ioredis";
 import type { Pool } from "pg";
 import type { Logger } from "pino";
 import type { ConsumerConfig } from "./config.ts";
 import { errorMessage, isPermanentDbError } from "./errors.ts";
 import { defineScripts } from "./redisScripts.ts";
-import { storeEvents } from "./store.ts";
+import { recordHeartbeats, storeEvents } from "./store.ts";
 
 /** A stream entry as Redis returns it: [id, [field, value, field, value, ...]]. */
 type Entry = [id: string, fields: string[]];
@@ -21,6 +28,8 @@ export type DeadLetterReason = "invalid" | "rejected" | "too_many_deliveries";
 
 interface DeadLetter {
   id: string;
+  /** Which kind of entry it was ("e" or "h"), so it can be replayed as-is. */
+  field: string;
   raw: string;
   reason: DeadLetterReason;
   error: string;
@@ -182,24 +191,32 @@ export class EventWorker {
 
     const dead: DeadLetter[] = [];
     const decoded: Decoded[] = [];
+    const heartbeats: { id: string; heartbeat: StreamHeartbeat }[] = [];
     for (const [id, fields] of entries) {
-      const raw = fieldValue(fields, STREAM_EVENT_FIELD) ?? "";
+      const isHeartbeat = fieldValue(fields, STREAM_HEARTBEAT_FIELD) !== undefined;
+      const field = isHeartbeat ? STREAM_HEARTBEAT_FIELD : STREAM_EVENT_FIELD;
+      const raw = fieldValue(fields, field) ?? "";
       const times = deliveries.get(id) ?? 1;
       if (times > this.cfg.maxDeliveries) {
-        dead.push({ id, raw, reason: "too_many_deliveries", error: `delivered ${times} times` });
+        dead.push({ id, field, raw, reason: "too_many_deliveries", error: `delivered ${times} times` });
         continue;
       }
       try {
-        decoded.push({ id, raw, event: decodeStreamEvent(raw) });
+        if (isHeartbeat) heartbeats.push({ id, heartbeat: decodeStreamHeartbeat(raw) });
+        else decoded.push({ id, raw, event: decodeStreamEvent(raw) });
       } catch (err) {
         // Malformed entries will never get better; retrying them is pointless.
-        dead.push({ id, raw, reason: "invalid", error: errorMessage(err) });
+        dead.push({ id, field, raw, reason: "invalid", error: errorMessage(err) });
       }
     }
 
     const { stored, rejected, added } = await this.store(decoded);
     dead.push(...rejected);
-    await this.acknowledge(stored.map((d) => d.id), dead);
+    // After the events, so a heartbeat can't mark a server alive "before" the
+    // events that came ahead of it. Idempotent (it only ever moves last_seen_at
+    // forward), so a retry after a crash here is harmless.
+    if (heartbeats.length > 0) await recordHeartbeats(this.pool, heartbeats.map((h) => h.heartbeat));
+    await this.acknowledge([...stored.map((d) => d.id), ...heartbeats.map((h) => h.id)], dead);
     this.retrying = null;
 
     await this.redis.gpTrimAcked(this.cfg.stream);
@@ -211,7 +228,7 @@ export class EventWorker {
       );
     }
     this.log.debug(
-      { entries: entries.length, added, duplicates: stored.length - added, deadLettered: dead.length },
+      { entries: entries.length, added, duplicates: stored.length - added, heartbeats: heartbeats.length, deadLettered: dead.length },
       "batch handled",
     );
     return entries.length;
@@ -243,7 +260,7 @@ export class EventWorker {
         stored.push(item);
       } catch (err) {
         if (!isPermanentDbError(err)) throw err;
-        rejected.push({ id: item.id, raw: item.raw, reason: "rejected", error: errorMessage(err) });
+        rejected.push({ id: item.id, field: STREAM_EVENT_FIELD, raw: item.raw, reason: "rejected", error: errorMessage(err) });
       }
     }
     return { stored, rejected, added };
@@ -260,7 +277,7 @@ export class EventWorker {
     for (const d of dead) {
       tx.xadd(
         this.cfg.deadLetterStream, "MAXLEN", "~", DEAD_LETTER_MAX_LEN, "*",
-        STREAM_EVENT_FIELD, d.raw,
+        d.field, d.raw,
         "source_id", d.id,
         "reason", d.reason,
         "error", d.error.slice(0, 1000),

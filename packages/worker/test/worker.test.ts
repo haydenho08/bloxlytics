@@ -1,8 +1,8 @@
 import { createPool } from "@gamepulse/db";
-import { STREAM_EVENT_FIELD } from "@gamepulse/shared";
+import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD } from "@gamepulse/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { storeEvents } from "../src/store.ts";
-import { count, createTestEnv, DLQ, drain, enqueue, GROUP, makeEvent, STREAM, type TestEnv } from "./helpers.ts";
+import { count, createTestEnv, DLQ, drain, enqueue, GAME_ID, GROUP, makeEvent, STREAM, type TestEnv } from "./helpers.ts";
 
 let env: TestEnv;
 
@@ -212,5 +212,35 @@ describe("worker: shutdown", () => {
     expect(await pendingCount()).toBe(0);
     const consumers = (await env.redis.xinfo("CONSUMERS", STREAM, GROUP)) as unknown[];
     expect(consumers).toHaveLength(0);
+  });
+});
+
+describe("worker: heartbeats", () => {
+  it("keeps a quiet server alive, and ignores heartbeats for unknown games", async () => {
+    const worker = await env.worker();
+    const heartbeat = (game_id: string, received_at: number) =>
+      env.redis.xadd(STREAM, "*", STREAM_HEARTBEAT_FIELD, JSON.stringify({ game_id, server_id: "server-1", players: 2, received_at }));
+    await enqueue(env.redis, makeEvent({ received_at: Date.parse("2026-01-20T11:00:00Z") }));
+    await heartbeat(GAME_ID, Date.parse("2026-01-20T11:30:00Z"));
+    await heartbeat(GAME_ID, Date.parse("2026-01-20T11:10:00Z")); // older, arrives late: no effect
+    await heartbeat("deleted-game", Date.now());
+
+    await drain(worker);
+
+    const { rows } = await env.pool.query("SELECT game_id, last_seen_at FROM game_servers");
+    expect(rows).toEqual([{ game_id: GAME_ID, last_seen_at: new Date("2026-01-20T11:30:00Z") }]);
+    expect(await pendingCount()).toBe(0);
+    expect(await deadLetters()).toEqual([]);
+  });
+
+  it("dead-letters a malformed heartbeat under its own field name", async () => {
+    const worker = await env.worker();
+    await env.redis.xadd(STREAM, "*", STREAM_HEARTBEAT_FIELD, JSON.stringify({ game_id: GAME_ID }));
+
+    await drain(worker);
+
+    const dead = await deadLetters();
+    expect(dead).toHaveLength(1);
+    expect(dead[0]).toMatchObject({ reason: "invalid", [STREAM_HEARTBEAT_FIELD]: JSON.stringify({ game_id: GAME_ID }) });
   });
 });

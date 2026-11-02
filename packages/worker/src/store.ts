@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import type { StreamEvent } from "@gamepulse/shared";
+import type { StreamEvent, StreamHeartbeat } from "@gamepulse/shared";
 
 /**
  * Stores a batch of events and updates the write-time rollups, all in one
@@ -133,5 +133,22 @@ async function updateRollups(client: PoolClient, newIds: string[]): Promise<void
          LIMIT 1
        )`,
     [newIds],
+  );
+}
+
+/**
+ * Marks servers as alive. Heartbeats for a game that no longer exists are
+ * skipped rather than failing the batch: there's nothing useful to dead-letter.
+ */
+export async function recordHeartbeats(pool: Pool, heartbeats: readonly StreamHeartbeat[]): Promise<void> {
+  await pool.query(
+    `INSERT INTO game_servers (game_id, server_id, last_seen_at)
+     SELECT h.game_id, h.server_id, max(to_timestamp(h.received_at / 1000.0))
+     FROM jsonb_to_recordset($1::jsonb) AS h(game_id text, server_id text, received_at bigint)
+     WHERE EXISTS (SELECT 1 FROM games g WHERE g.id = h.game_id)
+     GROUP BY 1, 2 ORDER BY 1, 2
+     ON CONFLICT (game_id, server_id) DO UPDATE
+       SET last_seen_at = GREATEST(game_servers.last_seen_at, EXCLUDED.last_seen_at)`,
+    [JSON.stringify(heartbeats)],
   );
 }

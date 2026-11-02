@@ -2,6 +2,7 @@ import type { Pool } from "@gamepulse/db";
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastify";
 import type { Redis } from "ioredis";
 import { ApiKeyAuthenticator } from "./auth.ts";
+import { registerGzipBodies } from "./compression.ts";
 import type { Config } from "./config.ts";
 import { DependencyUnavailableError } from "./errors.ts";
 import { defineScripts } from "./redisScripts.ts";
@@ -25,12 +26,14 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({
     logger: deps.logger ?? false,
     // 100 events x 8 KiB of properties fits comfortably; anything bigger is a bug or abuse.
+    // For gzip bodies this limits the decompressed size.
     bodyLimit: 1024 * 1024,
     // Let callers pass a request id so their logs and ours can be joined up.
     requestIdHeader: "x-request-id",
   });
 
   defineScripts(deps.redis);
+  registerGzipBodies(app);
   const authenticator = deps.authenticator ?? new ApiKeyAuthenticator(deps.pool);
 
   app.addHook("onSend", async (req, reply) => {

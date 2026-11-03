@@ -1,6 +1,6 @@
 {
-  "name": "GamePulse",
+  "name": "Bloxlytics",
   "tree": {
-    "$path": "src/GamePulse"
+    "$path": "src/Bloxlytics"
   }
 }

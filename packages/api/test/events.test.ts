@@ -1,10 +1,10 @@
 import { gzipSync } from "node:zlib";
-import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD, type StreamEvent } from "@gamepulse/shared";
+import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD, type StreamEvent } from "@bloxlytics/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createRedis } from "../src/redis.ts";
 import { createTestEnv, GAME_ID, makeBatch, makeEvent, OTHER_GAME_ID, type TestEnv } from "./helpers.ts";
 
-const STREAM = "gp:test:events";
+const STREAM = "bx:test:events";
 let env: TestEnv;
 
 beforeAll(async () => {
@@ -82,7 +82,7 @@ describe("POST /v1/events: authentication", () => {
   });
 
   it("rejects a well-formed but unknown key with 401", async () => {
-    const res = await post(env.build(), makeBatch(1), "gp_" + "A".repeat(43));
+    const res = await post(env.build(), makeBatch(1), "bx_" + "A".repeat(43));
     expect(res.statusCode).toBe(401);
   });
 
@@ -278,7 +278,7 @@ describe("POST /v1/heartbeat", () => {
   it("checks the key, the body and the game", async () => {
     const app = env.build();
     const ok = { game_id: GAME_ID, server_id: "server-1", players: 0 };
-    expect((await heartbeat(app, ok, "gp_" + "A".repeat(43))).statusCode).toBe(401);
+    expect((await heartbeat(app, ok, "bx_" + "A".repeat(43))).statusCode).toBe(401);
     expect((await heartbeat(app, { game_id: GAME_ID })).statusCode).toBe(400);
     expect((await heartbeat(app, { ...ok, game_id: OTHER_GAME_ID })).statusCode).toBe(403);
     expect(await env.redis.xlen(STREAM)).toBe(0);

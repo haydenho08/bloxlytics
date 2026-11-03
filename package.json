@@ -1,5 +1,5 @@
 {
-  "name": "gamepulse",
+  "name": "bloxlytics",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -14,10 +14,10 @@
   "scripts": {
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down",
-    "migrate": "npm run migrate -w @gamepulse/db",
-    "create-game": "npm run create-game -w @gamepulse/db --",
-    "dev:api": "npm run dev -w @gamepulse/api",
-    "dev:worker": "npm run dev -w @gamepulse/worker",
+    "migrate": "npm run migrate -w @bloxlytics/db",
+    "create-game": "npm run create-game -w @bloxlytics/db --",
+    "dev:api": "npm run dev -w @bloxlytics/api",
+    "dev:worker": "npm run dev -w @bloxlytics/worker",
     "typecheck": "tsc -p .",
     "lint": "eslint .",
     "test": "vitest run",

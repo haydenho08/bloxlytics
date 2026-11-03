@@ -47,10 +47,10 @@ return redis.call('XTRIM', KEYS[1], 'MINID', safe)
 
 declare module "ioredis" {
   interface RedisCommander<Context> {
-    gpTrimAcked(stream: string): Result<number, Context>;
+    bxTrimAcked(stream: string): Result<number, Context>;
   }
 }
 
 export function defineScripts(redis: Redis): void {
-  redis.defineCommand("gpTrimAcked", { numberOfKeys: 1, lua: TRIM_ACKED });
+  redis.defineCommand("bxTrimAcked", { numberOfKeys: 1, lua: TRIM_ACKED });
 }

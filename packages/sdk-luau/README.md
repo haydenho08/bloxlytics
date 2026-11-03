@@ -1,11 +1,11 @@
 ﻿# sdk-luau
 
-Server-side Roblox SDK for GamePulse. A ModuleScript that buffers gameplay events
+Server-side Roblox SDK for Bloxlytics. A ModuleScript that buffers gameplay events
 and sends them to the ingestion API in batches. See [docs/stage-3.md](../../docs/stage-3.md)
 for how it works and why.
 
 ```
-src/GamePulse/        the SDK (init.luau + EventQueue, RequestBudget, Validate, Guid)
+src/Bloxlytics/        the SDK (init.luau + EventQueue, RequestBudget, Validate, Guid)
 tests/                specs that run in Studio against a fake HTTP transport
 example/              a tiny place: auto join/leave, a Checkpoint custom event, ProcessReceipt
 *.project.json        Rojo projects: default (the module), example (a place), test (the specs)
@@ -13,17 +13,17 @@ example/              a tiny place: auto join/leave, a Checkpoint custom event, 
 
 ## Use it in a game
 
-1. Put `GamePulse` in **ServerScriptService** (never in ReplicatedStorage or a
+1. Put `Bloxlytics` in **ServerScriptService** (never in ReplicatedStorage or a
    LocalScript: the key would ship to every player's device).
 2. **Game Settings > Security > Allow HTTP Requests**: on.
 3. Store the key from `npm run create-game` as an **experience secret** named
-   `gamepulse_api_key` (Creator Dashboard > your experience > Secrets), restricted
+   `bloxlytics_api_key` (Creator Dashboard > your experience > Secrets), restricted
    to your API's domain.
 4. In a server Script:
 
 ```lua
-local GamePulse = require(game:GetService("ServerScriptService").GamePulse)
-local analytics = GamePulse.start({
+local Bloxlytics = require(game:GetService("ServerScriptService").Bloxlytics)
+local analytics = Bloxlytics.start({
 	gameId = "my-obby",
 	endpoint = "https://ingest.example.com",
 })
@@ -47,7 +47,7 @@ on `BindToClose`.
 | `maxBufferSize`        | 5000                | buffer cap; the oldest events are dropped beyond it  |
 | `heartbeatInterval`    | 60                  | send a heartbeat after this long with no request     |
 | `maxRequestsPerMinute` | 60                  | this SDK's share of HttpService's ~500/min           |
-| `apiKeySecret`         | `gamepulse_api_key` | experience secret holding the key                    |
+| `apiKeySecret`         | `bloxlytics_api_key` | experience secret holding the key                    |
 | `apiKey`               | none                | the key itself, **Studio testing only**              |
 | `compress`             | true                | gzip request bodies                                  |
 | `debug`                | false               | print each send                                      |
@@ -71,7 +71,7 @@ On the `Analytics` script, set the attributes `GameId`, `Endpoint`
 Press Play, touch the green part, stop. The events are in Postgres.
 
 Specs: `rojo serve test.project.json`, connect, press Play. Output prints
-`[GamePulse specs] 13 passed, 0 failed`.
+`[Bloxlytics specs] 13 passed, 0 failed`.
 
 A **published** game runs on Roblox's servers, which can't reach your laptop. For
 that, give the API a public HTTPS URL: deploy it (Stage 5) or run a tunnel such as

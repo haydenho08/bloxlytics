@@ -6,7 +6,7 @@ import {
   STREAM_HEARTBEAT_FIELD,
   type StreamEvent,
   type StreamHeartbeat,
-} from "@gamepulse/shared";
+} from "@bloxlytics/shared";
 import type { Redis } from "ioredis";
 import type { Pool } from "pg";
 import type { Logger } from "pino";
@@ -219,7 +219,7 @@ export class EventWorker {
     await this.acknowledge([...stored.map((d) => d.id), ...heartbeats.map((h) => h.id)], dead);
     this.retrying = null;
 
-    await this.redis.gpTrimAcked(this.cfg.stream);
+    await this.redis.bxTrimAcked(this.cfg.stream);
 
     if (dead.length > 0) {
       this.log.warn(

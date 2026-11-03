@@ -7,7 +7,7 @@ Nothing gets stored in Postgres or aggregated yet. That's Stage 2.
 ## The request path
 
 ```
-POST /v1/events  (X-API-Key: gp_...)
+POST /v1/events  (X-API-Key: bx_...)
   1. Auth         key -> SHA-256 -> api_keys lookup (cached)       401
   2. Validate     zod: 1-100 events, typed per event type          400
   3. Ownership    every event's game_id == the key's game          403
@@ -98,7 +98,7 @@ entries, which may not be processed yet. That's silent data loss.
 ### API keys: per game, stored only as a hash
 > "How do you store API keys?" / "Why SHA-256 and not bcrypt?"
 
-- A key is `gp_` + 32 random bytes (256 bits) in base64url. It's shown once by
+- A key is `bx_` + 32 random bytes (256 bits) in base64url. It's shown once by
   `create-game`, and only `sha256(key)` goes in the database. A database leak
   doesn't leak usable keys.
 - **SHA-256, not bcrypt.** bcrypt is slow *on purpose* because passwords have low
@@ -109,7 +109,7 @@ entries, which may not be processed yet. That's silent data loss.
 - **Separate `api_keys` table**, so a game can have several keys. To rotate:
   issue a new key, deploy it, then set `revoked_at` on the old one.
 - `key_prefix` (first 10 characters) lets a UI tell keys apart without storing them.
-- The `gp_` prefix makes leaked keys easy to spot (secret scanners look for
+- The `bx_` prefix makes leaked keys easy to spot (secret scanners look for
   prefixes like this) and lets us reject malformed keys without touching the database.
 
 **Cache:** auth results are kept in memory for 60s (10s for unknown keys, so
@@ -192,7 +192,7 @@ key header is **redacted**.
 ## Tests
 
 `npm test` runs 29 tests against the real Postgres and Redis from docker-compose,
-using a separate database (`gamepulse_test`) and Redis db `/1`.
+using a separate database (`bloxlytics_test`) and Redis db `/1`.
 `fastify.inject()` sends fake HTTP requests straight into the app with no network.
 
 | Behaviour                          | Test                                                                                |
@@ -211,7 +211,7 @@ the Lua scripts and SQL. A mock would test the mock.
 ## Manual check (what I ran)
 
 `create-game`, then the API on :8080, then real HTTP: 202 / 401 / 400 as
-expected, and entries visible with `XRANGE gp:events`. 50 back-to-back batches
+expected, and entries visible with `XRANGE bx:events`. 50 back-to-back batches
 of 50 events hit the default limit (500/s, burst 2000): 8 batches got 429.
 That's the limiter doing its job. Latency was about 5ms p50 on localhost
 (rough; Stage 5 measures it properly).

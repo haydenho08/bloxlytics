@@ -1,4 +1,4 @@
-import { createPool } from "@gamepulse/db";
+import { createPool } from "@bloxlytics/db";
 import { buildApp } from "./app.ts";
 import { loadConfig } from "./config.ts";
 import { createRedis } from "./redis.ts";

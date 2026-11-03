@@ -1,5 +1,5 @@
 import { hostname } from "node:os";
-import { DEFAULT_DEAD_LETTER_STREAM, DEFAULT_EVENTS_STREAM } from "@gamepulse/shared";
+import { DEFAULT_DEAD_LETTER_STREAM, DEFAULT_EVENTS_STREAM } from "@bloxlytics/shared";
 import { z } from "zod";
 
 // Same idea as the API: parse the environment once, crash at boot on a typo.
@@ -10,7 +10,7 @@ const envSchema = z.object({
   REDIS_URL: z.url(),
   EVENTS_STREAM: z.string().min(1).default(DEFAULT_EVENTS_STREAM),
   DEAD_LETTER_STREAM: z.string().min(1).default(DEFAULT_DEAD_LETTER_STREAM),
-  WORKER_GROUP: z.string().min(1).default("gp-workers"),
+  WORKER_GROUP: z.string().min(1).default("bx-workers"),
   // Unique per process, so each worker's pending entries are its own.
   WORKER_CONSUMER: z.string().min(1).default(`${hostname()}-${process.pid}`),
   WORKER_BATCH_SIZE: z.coerce.number().int().min(1).max(1000).default(500),

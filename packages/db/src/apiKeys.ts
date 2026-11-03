@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Pool } from "pg";
 
-export const API_KEY_PREFIX = "gp_";
-const API_KEY_PATTERN = /^gp_[A-Za-z0-9_-]{43}$/;
+export const API_KEY_PREFIX = "bx_";
+const API_KEY_PATTERN = /^bx_[A-Za-z0-9_-]{43}$/;
 
 /** 32 random bytes = 256 bits of entropy, base64url so it's header- and URL-safe. */
 export function generateApiKey(): string {

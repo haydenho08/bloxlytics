@@ -1,4 +1,4 @@
-# GamePulse
+# Bloxlytics
 
 Real-time analytics for Roblox games: a Luau SDK batches gameplay events from
 game servers, an ingestion API queues them in Redis Streams, workers store them

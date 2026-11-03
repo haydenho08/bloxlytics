@@ -1,5 +1,5 @@
 {
-  "name": "@gamepulse/db",
+  "name": "@bloxlytics/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "create-game": "tsx --env-file-if-exists=../../.env scripts/create-game.ts"
   },
   "dependencies": {
-    "@gamepulse/shared": "*",
+    "@bloxlytics/shared": "*",
     "pg": "^8.13.0"
   },
   "devDependencies": {

@@ -10,7 +10,7 @@ rollup tables the dashboard will read (players online, DAU, retention, revenue).
 loop:
   1. retrying a batch?  renew its claim (XCLAIM JUSTID), try it again
   2. reclaim due?       XAUTOCLAIM entries idle > 60s (their worker died)
-  3. otherwise          XREADGROUP ... COUNT 500 BLOCK 2000 STREAMS gp:events >
+  3. otherwise          XREADGROUP ... COUNT 500 BLOCK 2000 STREAMS bx:events >
   4. decode each entry  bad JSON / bad shape          -> dead letter ("invalid")
                         delivered > 5 times           -> dead letter ("too_many_deliveries")
   5. store the batch    ONE transaction: raw insert + write-time rollups, COMMIT
@@ -140,8 +140,8 @@ with `XCLAIM ... JUSTID`, which resets the idle time *without* bumping the count
 Test: "does not acknowledge anything until Postgres has committed" checks the count stays 1.
 
 Dead-lettering and acking happen in **one `MULTI`**, so an entry is never acked
-without its copy in `gp:events:dlq` (with `reason`, `error`, `source_id`). Inspect it
-with `XRANGE gp:events:dlq - +`. Replaying it is a deliberate human step.
+without its copy in `bx:events:dlq` (with `reason`, `error`, `source_id`). Inspect it
+with `XRANGE bx:events:dlq - +`. Replaying it is a deliberate human step.
 
 ### Trimming the stream (the carry-over from Stage 1)
 `XACK` doesn't delete entries. The API's backpressure check counts `XLEN`, so
@@ -220,7 +220,7 @@ on the stream from the Stage 1 manual test (500 per batch, ~370ms each, so
 roughly 1,300 events/s for one worker; Stage 5 measures it properly). Then real
 HTTP: a 4-event batch, **the same batch again** (an SDK retry), and a
 `player_leave`. Result: 5 rows in `events`, revenue 99 (not 198), DAU 2, one
-session closed and one open, players online 2, `XLEN gp:events` 0, nothing pending.
+session closed and one open, players online 2, `XLEN bx:events` 0, nothing pending.
 
 ## Things to be ready to discuss
 - Why not Kafka's exactly-once (transactions)? It only covers Kafka-to-Kafka. Writing

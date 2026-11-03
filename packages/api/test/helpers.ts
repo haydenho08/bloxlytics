@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { createGame, createPool, runMigrations, type Pool } from "@gamepulse/db";
-import type { GameEventInput } from "@gamepulse/shared";
+import { createGame, createPool, runMigrations, type Pool } from "@bloxlytics/db";
+import type { GameEventInput } from "@bloxlytics/shared";
 import type { FastifyInstance } from "fastify";
 import type { Redis } from "ioredis";
 import { buildApp } from "../src/app.ts";
@@ -10,7 +10,7 @@ import type { Config } from "../src/config.ts";
 import { createRedis } from "../src/redis.ts";
 
 export const TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://gamepulse:gamepulse@localhost:5433/gamepulse_test";
+  process.env.TEST_DATABASE_URL ?? "postgres://bloxlytics:bloxlytics@localhost:5433/bloxlytics_test";
 export const TEST_REDIS_URL = process.env.TEST_REDIS_URL ?? "redis://localhost:6380/1";
 
 export const GAME_ID = "test-game";
@@ -24,7 +24,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     port: 0,
     databaseUrl: TEST_DATABASE_URL,
     redisUrl: TEST_REDIS_URL,
-    stream: { name: "gp:test:events", maxPending: 10_000 },
+    stream: { name: "bx:test:events", maxPending: 10_000 },
     rateLimit: { eventsPerSec: 10_000, burst: 10_000 },
     ...overrides,
   };

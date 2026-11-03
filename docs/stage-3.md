@@ -1,7 +1,7 @@
 # Stage 3: Luau SDK
 
 **Goal:** a ModuleScript a Roblox developer drops into their game that sends
-events to GamePulse reliably. It must never hurt the game: no lag, no unbounded
+events to Bloxlytics reliably. It must never hurt the game: no lag, no unbounded
 memory, no using up the game's HTTP budget, no crash if our API is down.
 
 ## How a tracked event travels
@@ -21,7 +21,7 @@ analytics:track("level_complete", player, {level = 3})
   BindToClose -> leave events for players still here, drain in batches of 100, 25s max
 ```
 
-Code: [`src/GamePulse/init.luau`](../packages/sdk-luau/src/GamePulse/init.luau).
+Code: [`src/Bloxlytics/init.luau`](../packages/sdk-luau/src/Bloxlytics/init.luau).
 The server side gained [`/v1/heartbeat`](../packages/api/src/routes/events.ts) and
 [gzip bodies](../packages/api/src/compression.ts).
 

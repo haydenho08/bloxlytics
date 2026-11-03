@@ -1,5 +1,5 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { createPool } from "@gamepulse/db";
+import { createPool } from "@bloxlytics/db";
 import { Redis } from "ioredis";
 import { pino } from "pino";
 import { loadConfig } from "./config.ts";

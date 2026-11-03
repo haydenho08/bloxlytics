@@ -1,4 +1,4 @@
-import type { Pool } from "@gamepulse/db";
+import type { Pool } from "@bloxlytics/db";
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastify";
 import type { Redis } from "ioredis";
 import { ApiKeyAuthenticator } from "./auth.ts";

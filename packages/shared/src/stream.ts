@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { serverHeartbeat, storedGameEvent, type GameEvent, type ServerHeartbeat } from "./events.ts";
 
-export const DEFAULT_EVENTS_STREAM = "gp:events";
+export const DEFAULT_EVENTS_STREAM = "bx:events";
 /** Where the worker parks events it can't store, with the reason, for a human to look at. */
-export const DEFAULT_DEAD_LETTER_STREAM = "gp:events:dlq";
+export const DEFAULT_DEAD_LETTER_STREAM = "bx:events:dlq";
 
 /**
  * Each stream entry has a single field. Its name says what the entry is, and its

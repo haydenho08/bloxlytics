@@ -3,8 +3,8 @@
 
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local GamePulse = require(ServerScriptService.GamePulse)
-local specs = require(script.Parent["GamePulse.spec"])(GamePulse)
+local Bloxlytics = require(ServerScriptService.Bloxlytics)
+local specs = require(script.Parent["Bloxlytics.spec"])(Bloxlytics)
 
 local passed, failed = 0, 0
 for _, spec in specs do
@@ -17,4 +17,4 @@ for _, spec in specs do
 		warn(`  FAIL  {spec.name}\n        {err}`)
 	end
 end
-print(`[GamePulse specs] {passed} passed, {failed} failed`)
+print(`[Bloxlytics specs] {passed} passed, {failed} failed`)

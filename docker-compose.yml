@@ -1,12 +1,12 @@
-name: gamepulse
+name: bloxlytics
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: gamepulse
-      POSTGRES_PASSWORD: gamepulse
-      POSTGRES_DB: gamepulse
+      POSTGRES_USER: bloxlytics
+      POSTGRES_PASSWORD: bloxlytics
+      POSTGRES_DB: bloxlytics
     ports:
       - "5433:5432"
     volumes:
@@ -16,7 +16,7 @@ services:
     healthcheck:
       # -h 127.0.0.1 forces TCP. During first-time init Postgres runs a temporary
       # socket-only server, so a socket check would report healthy too early.
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U gamepulse -d gamepulse"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U bloxlytics -d bloxlytics"]
       interval: 2s
       timeout: 3s
       retries: 30

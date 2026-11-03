@@ -1,5 +1,5 @@
-import { createPool } from "@gamepulse/db";
-import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD } from "@gamepulse/shared";
+import { createPool } from "@bloxlytics/db";
+import { STREAM_EVENT_FIELD, STREAM_HEARTBEAT_FIELD } from "@bloxlytics/shared";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { storeEvents } from "../src/store.ts";
 import { count, createTestEnv, DLQ, drain, enqueue, GAME_ID, GROUP, makeEvent, STREAM, type TestEnv } from "./helpers.ts";
@@ -98,7 +98,7 @@ describe("worker: storing events", () => {
 
 describe("worker: failures", () => {
   it("does not acknowledge anything until Postgres has committed", async () => {
-    const deadDb = createPool("postgres://gamepulse:gamepulse@127.0.0.1:1/nowhere", 1);
+    const deadDb = createPool("postgres://bloxlytics:bloxlytics@127.0.0.1:1/nowhere", 1);
     const broken = await env.worker({}, deadDb);
     await enqueue(env.redis, makeEvent(), makeEvent());
 

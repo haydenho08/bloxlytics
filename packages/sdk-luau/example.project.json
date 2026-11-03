@@ -1,5 +1,5 @@
 {
-  "name": "GamePulse Example",
+  "name": "Bloxlytics Example",
   "tree": {
     "$className": "DataModel",
     "HttpService": {
@@ -8,8 +8,8 @@
       }
     },
     "ServerScriptService": {
-      "GamePulse": {
-        "$path": "src/GamePulse"
+      "Bloxlytics": {
+        "$path": "src/Bloxlytics"
       },
       "Analytics": {
         "$path": "example/Analytics.server.luau"

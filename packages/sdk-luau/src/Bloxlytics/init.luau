@@ -1,8 +1,8 @@
 --!strict
--- GamePulse: server-side analytics SDK for Roblox.
+-- Bloxlytics: server-side analytics SDK for Roblox.
 --
---   local GamePulse = require(ServerScriptService.GamePulse)
---   local analytics = GamePulse.start({ gameId = "my-obby", endpoint = "https://ingest.example.com" })
+--   local Bloxlytics = require(ServerScriptService.Bloxlytics)
+--   local analytics = Bloxlytics.start({ gameId = "my-obby", endpoint = "https://ingest.example.com" })
 --   analytics:track("level_complete", player, { level = 3 })
 --
 -- Events are buffered and sent in batches from one background thread: every
@@ -23,16 +23,16 @@ local Guid = require(script.Guid)
 local RequestBudget = require(script.RequestBudget)
 local Validate = require(script.Validate)
 
-local GamePulse = {}
-GamePulse.__index = GamePulse
-GamePulse.VERSION = "0.1.0"
+local Bloxlytics = {}
+Bloxlytics.__index = Bloxlytics
+Bloxlytics.VERSION = "0.1.0"
 
 -- The API's batch limit. Normal flushes use maxBatchSize; shutdown uses this to
 -- drain the buffer in as few requests as possible.
 local API_MAX_BATCH = 100
 
 export type Config = {
-	--- The game's id in GamePulse, e.g. "my-obby" (from `npm run create-game`).
+	--- The game's id in Bloxlytics, e.g. "my-obby" (from `npm run create-game`).
 	gameId: string,
 	--- Base URL of the ingestion API, e.g. "https://ingest.example.com".
 	endpoint: string,
@@ -78,7 +78,7 @@ export type Stats = {
 }
 
 local DEFAULTS = {
-	apiKeySecret = "gamepulse_api_key",
+	apiKeySecret = "bloxlytics_api_key",
 	flushInterval = 10,
 	maxBatchSize = 50,
 	maxBufferSize = 5000,
@@ -94,11 +94,11 @@ local DEFAULTS = {
 }
 
 local function log(...: any)
-	print("[GamePulse]", ...)
+	print("[Bloxlytics]", ...)
 end
 
 local function warnf(...: any)
-	warn("[GamePulse]", ...)
+	warn("[Bloxlytics]", ...)
 end
 
 local function withDefaults(config: Config): { [string]: any }
@@ -123,7 +123,7 @@ local function resolveApiKey(config: { [string]: any }): any
 	end)
 	if not ok then
 		error(
-			`[GamePulse] couldn't read the experience secret "{config.apiKeySecret}": {secret}. `
+			`[Bloxlytics] couldn't read the experience secret "{config.apiKeySecret}": {secret}. `
 				.. "Add it under Game Settings > Security > Secrets, or pass apiKey when testing in Studio.",
 			0
 		)
@@ -145,20 +145,20 @@ local function retryAfterSeconds(headers: { [string]: any }?): number?
 end
 
 --- Creates a client and starts its background sender.
-function GamePulse.start(config: Config)
-	local self = GamePulse.new(config)
+function Bloxlytics.start(config: Config)
+	local self = Bloxlytics.new(config)
 	self:_start()
 	return self
 end
 
-function GamePulse.new(config: Config)
-	assert(RunService:IsServer(), "[GamePulse] must run on the server (a Script or ModuleScript in ServerScriptService)")
-	assert(type(config) == "table", "[GamePulse] config is required")
-	assert(Validate.gameId(config.gameId), "[GamePulse] gameId must be a lowercase slug like \"my-obby\"")
-	assert(type(config.endpoint) == "string", "[GamePulse] endpoint is required, e.g. \"https://ingest.example.com\"")
+function Bloxlytics.new(config: Config)
+	assert(RunService:IsServer(), "[Bloxlytics] must run on the server (a Script or ModuleScript in ServerScriptService)")
+	assert(type(config) == "table", "[Bloxlytics] config is required")
+	assert(Validate.gameId(config.gameId), "[Bloxlytics] gameId must be a lowercase slug like \"my-obby\"")
+	assert(type(config.endpoint) == "string", "[Bloxlytics] endpoint is required, e.g. \"https://ingest.example.com\"")
 
 	local cfg = withDefaults(config)
-	assert(cfg.maxBatchSize >= 1 and cfg.maxBatchSize <= API_MAX_BATCH, "[GamePulse] maxBatchSize must be 1-100")
+	assert(cfg.maxBatchSize >= 1 and cfg.maxBatchSize <= API_MAX_BATCH, "[Bloxlytics] maxBatchSize must be 1-100")
 
 	local clock: () -> number = cfg.clock or os.clock
 	local self = setmetatable({
@@ -189,11 +189,11 @@ function GamePulse.new(config: Config)
 		_connections = {} :: { RBXScriptConnection },
 		_lastDropWarning = -math.huge,
 		_stats = { queued = 0, dropped = 0, sent = 0, rejected = 0, retries = 0, heartbeats = 0 } :: Stats,
-	}, GamePulse)
+	}, Bloxlytics)
 	return self
 end
 
-function GamePulse._start(self: any)
+function Bloxlytics._start(self: any)
 	if not self._config.transport then
 		local ok, enabled = pcall(function()
 			return HttpService.HttpEnabled
@@ -235,7 +235,7 @@ end
 -- Public API -------------------------------------------------------------------
 
 --- A custom event. `player` is a Player or a UserId.
-function GamePulse.track(self: any, name: string, player: Player | number, properties: { [string]: any }?)
+function Bloxlytics.track(self: any, name: string, player: Player | number, properties: { [string]: any }?)
 	local ok, err = Validate.eventName(name)
 	if not ok then
 		return self:_reject(`track("{tostring(name)}"): {err}`)
@@ -245,7 +245,7 @@ end
 
 --- A purchase. Pass `purchaseId` (the receipt's PurchaseId) whenever you have it:
 --- it makes the event idempotent, so a receipt processed twice counts once.
-function GamePulse.trackPurchase(
+function Bloxlytics.trackPurchase(
 	self: any,
 	player: Player | number,
 	productId: string | number,
@@ -273,7 +273,7 @@ function GamePulse.trackPurchase(
 end
 
 --- Tracks the purchase described by a ProcessReceipt receiptInfo.
-function GamePulse.trackReceipt(self: any, receiptInfo: { [string]: any }, properties: { [string]: any }?)
+function Bloxlytics.trackReceipt(self: any, receiptInfo: { [string]: any }, properties: { [string]: any }?)
 	self:trackPurchase(
 		receiptInfo.PlayerId,
 		receiptInfo.ProductId,
@@ -284,11 +284,11 @@ function GamePulse.trackReceipt(self: any, receiptInfo: { [string]: any }, prope
 end
 
 --- Sends whatever is buffered now instead of waiting for the next interval.
-function GamePulse.flush(self: any)
+function Bloxlytics.flush(self: any)
 	self._flushRequested = true
 end
 
-function GamePulse.getStats(self: any): Stats
+function Bloxlytics.getStats(self: any): Stats
 	local stats = table.clone(self._stats)
 	stats.queued = self._queue:size() + (if self._pending then #self._pending else 0)
 	return stats
@@ -296,7 +296,7 @@ end
 
 --- Sends everything still buffered, then stops. Called automatically on
 --- BindToClose. Yields until done or `timeout` seconds have passed.
-function GamePulse.shutdown(self: any, timeout: number?)
+function Bloxlytics.shutdown(self: any, timeout: number?)
 	if self._closing then
 		return
 	end
@@ -328,7 +328,7 @@ end
 
 -- Internals ----------------------------------------------------------------------
 
-function GamePulse._playerJoined(self: any, player: Player)
+function Bloxlytics._playerJoined(self: any, player: Player)
 	if self._present[player.UserId] then
 		return
 	end
@@ -336,7 +336,7 @@ function GamePulse._playerJoined(self: any, player: Player)
 	self:_enqueue("player_join", player, {}, {})
 end
 
-function GamePulse._playerLeft(self: any, userId: number)
+function Bloxlytics._playerLeft(self: any, userId: number)
 	if not self._present[userId] then
 		return
 	end
@@ -344,12 +344,12 @@ function GamePulse._playerLeft(self: any, userId: number)
 	self:_enqueue("player_leave", userId, {}, {})
 end
 
-function GamePulse._reject(self: any, message: string)
+function Bloxlytics._reject(self: any, message: string)
 	self._stats.rejected += 1
 	warnf(message)
 end
 
-function GamePulse._enqueue(self: any, eventType: string, player: Player | number, properties: { [string]: any }, extra: { [string]: any })
+function Bloxlytics._enqueue(self: any, eventType: string, player: Player | number, properties: { [string]: any }, extra: { [string]: any })
 	if self._closed then
 		return
 	end
@@ -387,7 +387,7 @@ end
 
 -- The sender: the only thread that makes requests. One request at a time keeps
 -- batches in order, which the worker relies on to pair joins with leaves.
-function GamePulse._run(self: any)
+function Bloxlytics._run(self: any)
 	local cfg = self._config
 	while true do
 		local now = self._clock()
@@ -432,7 +432,7 @@ function GamePulse._run(self: any)
 end
 
 -- "ok", "retry" or "drop", plus Retry-After and an error message.
-function GamePulse._post(self: any, path: string, body: any): (string, number?, string?)
+function Bloxlytics._post(self: any, path: string, body: any): (string, number?, string?)
 	local request = {
 		Url = self._endpoint .. path,
 		Method = "POST",
@@ -459,7 +459,7 @@ function GamePulse._post(self: any, path: string, body: any): (string, number?, 
 	return "drop", nil, message
 end
 
-function GamePulse._backoff(self: any, retryAfter: number?): number
+function Bloxlytics._backoff(self: any, retryAfter: number?): number
 	self._attempts += 1
 	self._stats.retries += 1
 	if retryAfter then
@@ -471,7 +471,7 @@ function GamePulse._backoff(self: any, retryAfter: number?): number
 	return math.random() * cap
 end
 
-function GamePulse._sendPending(self: any)
+function Bloxlytics._sendPending(self: any)
 	local batch = self._pending
 	local result, retryAfter, err = self:_post("/v1/events", { events = batch })
 	local now = self._clock()
@@ -497,7 +497,7 @@ function GamePulse._sendPending(self: any)
 	end
 end
 
-function GamePulse._sendHeartbeat(self: any)
+function Bloxlytics._sendHeartbeat(self: any)
 	local result, retryAfter, err = self:_post("/v1/heartbeat", {
 		game_id = self._config.gameId,
 		server_id = self._serverId,
@@ -517,4 +517,4 @@ function GamePulse._sendHeartbeat(self: any)
 	end
 end
 
-return GamePulse
+return Bloxlytics

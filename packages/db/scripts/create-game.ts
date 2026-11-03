@@ -1,4 +1,4 @@
-import { GAME_ID_PATTERN } from "@gamepulse/shared";
+import { GAME_ID_PATTERN } from "@bloxlytics/shared";
 import { createGame, createPool } from "../src/index.ts";
 
 const [gameId, ...nameParts] = process.argv.slice(2);

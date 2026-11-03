@@ -1,10 +1,10 @@
 {
-  "name": "GamePulse Tests",
+  "name": "Bloxlytics Tests",
   "tree": {
     "$className": "DataModel",
     "ServerScriptService": {
-      "GamePulse": {
-        "$path": "src/GamePulse"
+      "Bloxlytics": {
+        "$path": "src/Bloxlytics"
       },
       "Tests": {
         "$path": "tests"

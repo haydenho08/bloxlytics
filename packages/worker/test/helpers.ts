@@ -1,19 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { createGame, createPool, runMigrations, type Pool } from "@gamepulse/db";
-import { encodeStreamEvent, STREAM_EVENT_FIELD, type StreamEvent } from "@gamepulse/shared";
+import { createGame, createPool, runMigrations, type Pool } from "@bloxlytics/db";
+import { encodeStreamEvent, STREAM_EVENT_FIELD, type StreamEvent } from "@bloxlytics/shared";
 import { Redis } from "ioredis";
 import { pino } from "pino";
 import type { ConsumerConfig } from "../src/config.ts";
 import { EventWorker } from "../src/worker.ts";
 
 export const TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://gamepulse:gamepulse@localhost:5433/gamepulse_test";
+  process.env.TEST_DATABASE_URL ?? "postgres://bloxlytics:bloxlytics@localhost:5433/bloxlytics_test";
 export const TEST_REDIS_URL = process.env.TEST_REDIS_URL ?? "redis://localhost:6380/1";
 
 export const GAME_ID = "test-game";
-export const STREAM = "gp:test:worker:events";
-export const DLQ = "gp:test:worker:dlq";
-export const GROUP = "gp-test-workers";
+export const STREAM = "bx:test:worker:events";
+export const DLQ = "bx:test:worker:dlq";
+export const GROUP = "bx-test-workers";
 
 export function consumerConfig(overrides: Partial<ConsumerConfig> = {}): ConsumerConfig {
   return {

@@ -1,4 +1,4 @@
-import { findGameIdByKeyHash, hashApiKey, isWellFormedApiKey, type Pool } from "@gamepulse/db";
+import { findGameIdByKeyHash, hashApiKey, isWellFormedApiKey, type Pool } from "@bloxlytics/db";
 
 export const API_KEY_HEADER = "x-api-key";
 

@@ -1,7 +1,7 @@
-# GamePulse: project plan and working rules
+# Bloxlytics: project plan and working rules
 
 ## Who and why
-Hayden is a first-year Software Engineering student at York. GamePulse is a
+Hayden is a first-year Software Engineering student at York. Bloxlytics is a
 real-time analytics pipeline for Roblox games: his second resume project, for
 Summer 2027 SWE internships. His first project, StudyFlow, is a full-stack CRUD
 app, so this one shows backend and systems skills: event ingestion, queues,
@@ -25,7 +25,7 @@ Update this checklist when a stage is finished.
 Windows, PowerShell, VS Code, Docker Desktop, Roblox Studio.
 - Host ports: Postgres **5433**, Redis **6380** (5432 is taken by another project).
 - Hayden's PowerShell blocks `npm.ps1`. Tell him to use `npm.cmd` in commands he runs himself.
-- Test database `gamepulse_test`, test Redis db `/1`. Dev uses db `/0`.
+- Test database `bloxlytics_test`, test Redis db `/1`. Dev uses db `/0`.
 - Studio's HttpService can reach `localhost` (verified), so Studio tests need no
   tunnel. Rojo isn't installed yet (`rokit.toml` pins it); without it, sync the
   SDK into Studio over the Studio MCP and run the specs in a Play server.

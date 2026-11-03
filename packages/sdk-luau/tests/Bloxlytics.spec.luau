@@ -5,7 +5,7 @@
 
 local HttpService = game:GetService("HttpService")
 
-return function(GamePulse: any)
+return function(Bloxlytics: any)
 	local specs: { { name: string, fn: () -> () } } = {}
 	local function it(name: string, fn: () -> ())
 		table.insert(specs, { name = name, fn = fn })
@@ -55,8 +55,8 @@ return function(GamePulse: any)
 	local function client(api: any, overrides: { [string]: any }?)
 		local config: { [string]: any } = {
 			gameId = "test-game",
-			endpoint = "http://gamepulse.test/",
-			apiKey = "gp_test",
+			endpoint = "http://bloxlytics.test/",
+			apiKey = "bx_test",
 			trackPlayers = false,
 			bindToClose = false,
 			flushInterval = 0.1,
@@ -68,7 +68,7 @@ return function(GamePulse: any)
 		for k, v in overrides or {} do
 			config[k] = v
 		end
-		return GamePulse.start(config)
+		return Bloxlytics.start(config)
 	end
 
 	local PLAYER = 123456789
@@ -92,8 +92,8 @@ return function(GamePulse: any)
 		for i, e in api.events() do
 			expectEqual(e.properties.i, i, "order")
 		end
-		expectEqual(api.requests[1].url, "http://gamepulse.test/v1/events", "url (trailing slash trimmed)")
-		expectEqual(api.requests[1].headers["X-API-Key"], "gp_test", "api key header")
+		expectEqual(api.requests[1].url, "http://bloxlytics.test/v1/events", "url (trailing slash trimmed)")
+		expectEqual(api.requests[1].headers["X-API-Key"], "bx_test", "api key header")
 	end)
 
 	it("sends a full batch without waiting for the interval", function()
@@ -249,7 +249,7 @@ return function(GamePulse: any)
 			return c:getStats().heartbeats >= 1
 		end)
 		c:shutdown(1)
-		expectEqual(api.requests[1].url, "http://gamepulse.test/v1/heartbeat", "url")
+		expectEqual(api.requests[1].url, "http://bloxlytics.test/v1/heartbeat", "url")
 		expectEqual(api.requests[1].body.game_id, "test-game", "game_id")
 		expectEqual(api.requests[1].body.players, #game:GetService("Players"):GetPlayers(), "players")
 	end)

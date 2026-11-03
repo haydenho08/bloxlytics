@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import type { StreamEvent, StreamHeartbeat } from "@gamepulse/shared";
+import type { StreamEvent, StreamHeartbeat } from "@bloxlytics/shared";
 
 /**
  * Stores a batch of events and updates the write-time rollups, all in one

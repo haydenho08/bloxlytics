@@ -1,5 +1,5 @@
 {
-  "name": "@gamepulse/api",
+  "name": "@bloxlytics/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,8 +8,8 @@
     "start": "tsx --env-file-if-exists=../../.env src/main.ts"
   },
   "dependencies": {
-    "@gamepulse/db": "*",
-    "@gamepulse/shared": "*",
+    "@bloxlytics/db": "*",
+    "@bloxlytics/shared": "*",
     "fastify": "^5.0.0",
     "ioredis": "^5.4.0",
     "pg": "^8.13.0",

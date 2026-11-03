@@ -65,18 +65,18 @@ return count
 
 declare module "ioredis" {
   interface RedisCommander<Context> {
-    gpTakeTokens(
+    bxTakeTokens(
       key: string,
       rate: number,
       burst: number,
       cost: number,
     ): Result<[number, number, number], Context>;
-    gpEnqueue(stream: string, maxPending: number, field: string, ...entries: string[]): Result<number, Context>;
+    bxEnqueue(stream: string, maxPending: number, field: string, ...entries: string[]): Result<number, Context>;
   }
 }
 
 /** Registers the scripts. ioredis sends EVALSHA and falls back to EVAL on a cache miss. */
 export function defineScripts(redis: Redis): void {
-  redis.defineCommand("gpTakeTokens", { numberOfKeys: 1, lua: TAKE_TOKENS });
-  redis.defineCommand("gpEnqueue", { numberOfKeys: 1, lua: ENQUEUE });
+  redis.defineCommand("bxTakeTokens", { numberOfKeys: 1, lua: TAKE_TOKENS });
+  redis.defineCommand("bxEnqueue", { numberOfKeys: 1, lua: ENQUEUE });
 }

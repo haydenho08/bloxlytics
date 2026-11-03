@@ -1,4 +1,4 @@
-import { DEFAULT_EVENTS_STREAM, MAX_BATCH_SIZE } from "@gamepulse/shared";
+import { DEFAULT_EVENTS_STREAM, MAX_BATCH_SIZE } from "@bloxlytics/shared";
 import { z } from "zod";
 
 // Parse the environment once at startup. A typo'd or missing variable crashes

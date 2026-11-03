@@ -1,4 +1,4 @@
-import type { Pool } from "@gamepulse/db";
+import type { Pool } from "@bloxlytics/db";
 import type { FastifyPluginAsync } from "fastify";
 import type { Redis } from "ioredis";
 

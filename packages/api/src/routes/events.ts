@@ -5,7 +5,7 @@ import {
   serverHeartbeat,
   STREAM_EVENT_FIELD,
   STREAM_HEARTBEAT_FIELD,
-} from "@gamepulse/shared";
+} from "@bloxlytics/shared";
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import type { Redis } from "ioredis";
 import type { z } from "zod";
@@ -51,7 +51,7 @@ export const eventsRoutes: FastifyPluginAsync<EventsDeps> = async (app, deps) =>
   async function takeTokens(reply: FastifyReply, gameId: string, cost: number): Promise<boolean> {
     const [allowed, retryAfterMs] = await withDependency(
       "redis",
-      redis.gpTakeTokens(`gp:ratelimit:${gameId}`, config.rateLimit.eventsPerSec, config.rateLimit.burst, cost),
+      redis.bxTakeTokens(`bx:ratelimit:${gameId}`, config.rateLimit.eventsPerSec, config.rateLimit.burst, cost),
     );
     if (!allowed) {
       reply
@@ -72,7 +72,7 @@ export const eventsRoutes: FastifyPluginAsync<EventsDeps> = async (app, deps) =>
   ): Promise<number> {
     const added = await withDependency(
       "redis",
-      redis.gpEnqueue(config.stream.name, config.stream.maxPending, field, ...entries),
+      redis.bxEnqueue(config.stream.name, config.stream.maxPending, field, ...entries),
     );
     if (added < 0) {
       req.log.warn({ gameId }, "stream full, shedding load");

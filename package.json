@@ -6,7 +6,8 @@
     "packages/shared",
     "packages/db",
     "packages/api",
-    "packages/worker"
+    "packages/worker",
+    "packages/dashboard-api"
   ],
   "engines": {
     "node": ">=22"
@@ -21,7 +22,8 @@
     "typecheck": "tsc -p .",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev:dashboard-api": "npm run dev -w @bloxlytics/dashboard-api"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
-    "start": "tsx --env-file-if-exists=../../.env src/main.ts"
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts",
+    "seed-demo": "tsx --env-file-if-exists=../../.env scripts/seed-demo.ts"
   },
   "dependencies": {
     "@bloxlytics/db": "*",

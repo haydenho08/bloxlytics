@@ -16,7 +16,7 @@ answer. Don't start the next stage until he says so.**
 - [x] Stage 1: infra + ingestion API (see docs/stage-1.md)
 - [x] Stage 2: worker + storage (see docs/stage-2.md)
 - [x] Stage 3: Luau SDK (see docs/stage-3.md)
-- [ ] Stage 4: dashboard
+- [x] Stage 4: dashboard (see docs/stage-4.md)
 - [ ] Stage 5: load test + polish
 
 Update this checklist when a stage is finished.
@@ -24,6 +24,7 @@ Update this checklist when a stage is finished.
 ## Environment
 Windows, PowerShell, VS Code, Docker Desktop, Roblox Studio.
 - Host ports: Postgres **5433**, Redis **6380** (5432 is taken by another project).
+  Vite runs on **5180** because StudyFlow's Vite uses 5173.
 - Hayden's PowerShell blocks `npm.ps1`. Tell him to use `npm.cmd` in commands he runs himself.
 - Test database `bloxlytics_test`, test Redis db `/1`. Dev uses db `/0`.
 - Studio's HttpService can reach `localhost` (verified), so Studio tests need no
@@ -100,7 +101,9 @@ player_id, type, timestamp (epoch ms), properties. The schemas live in
   tests until they pass, and start the services to check they work end to end.
 - Put a short teaching walkthrough for each stage in `docs/stage-N.md`.
 - Commands: `npm run infra:up`, `npm run migrate`, `npm run create-game -- <id> "Name"`,
-  `npm run dev:api`, `npm run dev:worker`, `npm test`, `npm run lint`, `npm run typecheck`.
+  `npm run dev:api`, `npm run dev:worker`, `npm run dev:dashboard-api` (:8082),
+  `npm run dev:dashboard` (:5180), `npm run seed-demo -- <id>`, `npm test`, `npm run lint`,
+  `npm run typecheck`.
 
 ## Git rules
 - Commit as **Hayden Ho <hydnho@gmail.com>** (set with `git config` in this repo,

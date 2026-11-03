@@ -23,6 +23,9 @@ npm run migrate
 npm run create-game -- my-obby "My Obby"   # prints an API key once
 npm run dev:api             # http://127.0.0.1:8080
 npm run dev:worker          # in a second terminal: stream -> Postgres
+npm run seed-demo -- demo-game             # optional: two weeks of demo history
+npm run dev:dashboard-api   # third terminal: http://127.0.0.1:8082
+npm run dev:dashboard       # fourth terminal: open http://localhost:5180
 npm test
 ```
 
@@ -39,5 +42,6 @@ use `npm.cmd` in place of `npm`, or run
 | `packages/api`      | Fastify ingestion API                                           |
 | `packages/worker`   | Consumer-group worker: stores events, builds rollups            |
 | `packages/sdk-luau` | Luau SDK for Roblox game servers (Rojo); see its README         |
-| `packages/dashboard`| Stage 4                                                         |
+| `packages/dashboard-api` | Read-only Fastify API over the rollups, live SSE stream    |
+| `packages/dashboard`| React + Vite + Recharts dashboard                               |
 | `packages/loadgen`  | Stage 5                                                         |

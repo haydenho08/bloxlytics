@@ -108,7 +108,9 @@ player_id, type, timestamp (epoch ms), properties. The schemas live in
   dashboard :8082). Benchmarks run loadgen inside Docker
   (`docker compose --profile bench run --rm loadgen ...`): from Windows, the Docker
   Desktop port proxy dominates the numbers.
-- Not deployed yet, and no GitHub remote yet: ask Hayden before creating either.
+- GitHub: github.com/haydenho08/bloxlytics (private for now; Hayden decides when
+  to make it public). CI passes. Not deployed: Hayden doesn't want to pay, so only
+  free options (see docs/deploy.md). Ask before pushing or deploying.
 
 ## Git rules
 - Commit as **Hayden Ho <hydnho@gmail.com>** (set with `git config` in this repo,

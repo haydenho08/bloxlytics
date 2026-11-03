@@ -38,6 +38,6 @@ use `npm.cmd` in place of `npm`, or run
 | `packages/db`       | SQL migrations (events, rollups), migration runner, API keys    |
 | `packages/api`      | Fastify ingestion API                                           |
 | `packages/worker`   | Consumer-group worker: stores events, builds rollups            |
-| `packages/sdk-luau` | Stage 3                                                         |
+| `packages/sdk-luau` | Luau SDK for Roblox game servers (Rojo); see its README         |
 | `packages/dashboard`| Stage 4                                                         |
 | `packages/loadgen`  | Stage 5                                                         |

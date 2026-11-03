@@ -15,7 +15,7 @@ answer. Don't start the next stage until he says so.**
 ## Current status
 - [x] Stage 1: infra + ingestion API (see docs/stage-1.md)
 - [x] Stage 2: worker + storage (see docs/stage-2.md)
-- [ ] Stage 3: Luau SDK
+- [x] Stage 3: Luau SDK (see docs/stage-3.md)
 - [ ] Stage 4: dashboard
 - [ ] Stage 5: load test + polish
 
@@ -26,6 +26,9 @@ Windows, PowerShell, VS Code, Docker Desktop, Roblox Studio.
 - Host ports: Postgres **5433**, Redis **6380** (5432 is taken by another project).
 - Hayden's PowerShell blocks `npm.ps1`. Tell him to use `npm.cmd` in commands he runs himself.
 - Test database `gamepulse_test`, test Redis db `/1`. Dev uses db `/0`.
+- Studio's HttpService can reach `localhost` (verified), so Studio tests need no
+  tunnel. Rojo isn't installed yet (`rokit.toml` pins it); without it, sync the
+  SDK into Studio over the Studio MCP and run the specs in a Play server.
 
 ## Tech stack
 - Ingestion API + workers: TypeScript, Node.js, Fastify, zod for validation

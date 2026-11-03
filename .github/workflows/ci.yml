@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch cancels the run still going for the old one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # The integration tests run against real Postgres and Redis, as locally.
+    # Same host ports as docker-compose.yml, so the tests' default URLs just work.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bloxlytics
+          POSTGRES_PASSWORD: bloxlytics
+          POSTGRES_DB: bloxlytics_test
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bloxlytics -d bloxlytics_test"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports: ["6380:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+
+    env:
+      TEST_DATABASE_URL: postgres://bloxlytics:bloxlytics@localhost:5433/bloxlytics_test
+      TEST_REDIS_URL: redis://localhost:6380/1
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build the dashboard
+        run: npm run build -w @bloxlytics/dashboard
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t bloxlytics-app .

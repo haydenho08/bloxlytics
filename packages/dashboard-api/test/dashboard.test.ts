@@ -249,3 +249,18 @@ describe("live stream", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("static dashboard", () => {
+  it("serves the built React app from the same origin when DASHBOARD_STATIC_DIR is set", async () => {
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = await mkdtemp(join(tmpdir(), "bx-static-"));
+    await writeFile(join(dir, "index.html"), "<!doctype html><title>Bloxlytics</title>");
+    const app = env.build({ config: { staticDir: dir } });
+    const page = await app.inject("/");
+    expect(page.statusCode).toBe(200);
+    expect(page.headers["content-type"]).toMatch(/text\/html/);
+    expect((await app.inject("/api/games")).statusCode).toBe(200);
+  });
+});

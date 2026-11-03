@@ -1,4 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import { resolve } from "node:path";
+import fastifyStatic from "@fastify/static";
 import type { Pool } from "@bloxlytics/db";
 import { GAME_ID_PATTERN } from "@bloxlytics/shared";
 import Fastify, { type FastifyBaseLogger, type FastifyInstance } from "fastify";
@@ -56,6 +58,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get("/health", async () => ({ status: "ok", viewers: feed.viewerCount }));
   app.register(gamesRoutes, { pool, overviews, clock });
   app.register(liveRoutes, { feed, overviews, overviewEveryMs: config.liveOverviewMs });
+  if (config.staticDir) {
+    // One origin for the page and its API: no CORS, and Basic auth covers both.
+    app.register(fastifyStatic, { root: resolve(config.staticDir) });
+  }
 
   return app;
 }

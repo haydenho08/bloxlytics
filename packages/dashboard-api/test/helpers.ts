@@ -31,6 +31,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     stream: STREAM,
     serverStaleAfterMs: 5 * 60_000,
     liveOverviewMs: 1000,
+    staticDir: undefined,
     ...overrides,
   };
 }

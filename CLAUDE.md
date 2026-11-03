@@ -17,7 +17,7 @@ answer. Don't start the next stage until he says so.**
 - [x] Stage 2: worker + storage (see docs/stage-2.md)
 - [x] Stage 3: Luau SDK (see docs/stage-3.md)
 - [x] Stage 4: dashboard (see docs/stage-4.md)
-- [ ] Stage 5: load test + polish
+- [x] Stage 5: load test + polish (see docs/stage-5.md, docs/deploy.md)
 
 Update this checklist when a stage is finished.
 
@@ -103,7 +103,12 @@ player_id, type, timestamp (epoch ms), properties. The schemas live in
 - Commands: `npm run infra:up`, `npm run migrate`, `npm run create-game -- <id> "Name"`,
   `npm run dev:api`, `npm run dev:worker`, `npm run dev:dashboard-api` (:8082),
   `npm run dev:dashboard` (:5180), `npm run seed-demo -- <id>`, `npm test`, `npm run lint`,
-  `npm run typecheck`.
+  `npm run typecheck`, `npm run loadgen -- --steps ...`.
+- Full stack in Docker: `docker compose --profile app up --build -d` (api :8080,
+  dashboard :8082). Benchmarks run loadgen inside Docker
+  (`docker compose --profile bench run --rm loadgen ...`): from Windows, the Docker
+  Desktop port proxy dominates the numbers.
+- Not deployed yet, and no GitHub remote yet: ask Hayden before creating either.
 
 ## Git rules
 - Commit as **Hayden Ho <hydnho@gmail.com>** (set with `git config` in this repo,

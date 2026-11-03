@@ -159,6 +159,9 @@ code {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Its content mustn't size the grid rows: a long feed would stretch the chart
+     panels beside it. The charts set the height; the feed fills it and scrolls. */
+  contain: size;
 }
 
 @media (max-width: 1100px) {
@@ -171,6 +174,7 @@ code {
     grid-row: auto;
   }
   .feed {
+    contain: none;
     max-height: 480px;
   }
   .stats {

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./dashboard": "./src/dashboard.ts"
   },
   "dependencies": {
     "zod": "^4.0.0"

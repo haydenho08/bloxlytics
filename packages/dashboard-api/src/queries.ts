@@ -50,13 +50,17 @@ export async function overview(pool: Pool, gameId: string, now: Date, staleAfter
   return { ...rows[0]!, as_of: now.getTime() };
 }
 
-/** Players online per minute for the last `minutes` minutes, oldest first, ending at now's minute. */
+/**
+ * Players online per minute for the last `minutes` complete minutes, oldest first.
+ * The current minute is left out: it isn't over, and the rollup job (every 15s)
+ * may not have reached it yet, so it would show as a misleading drop to 0.
+ */
 export async function onlineSeries(pool: Pool, gameId: string, now: Date, minutes: number): Promise<OnlinePoint[]> {
   const { rows } = await pool.query<OnlinePoint>(
     `SELECT (extract(epoch FROM m.minute) * 1000)::float8 AS minute,
             COALESCE(p.players, 0)::float8 AS players
-     FROM generate_series(date_trunc('minute', $2::timestamptz) - ($3::int - 1) * interval '1 minute',
-                          date_trunc('minute', $2::timestamptz), interval '1 minute') AS m(minute)
+     FROM generate_series(date_trunc('minute', $2::timestamptz) - $3::int * interval '1 minute',
+                          date_trunc('minute', $2::timestamptz) - interval '1 minute', interval '1 minute') AS m(minute)
      LEFT JOIN players_online_minute p ON p.game_id = $1 AND p.minute = m.minute
      ORDER BY m.minute`,
     [gameId, now, minutes],

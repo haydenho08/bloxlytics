@@ -43,7 +43,7 @@ describe("games", () => {
 });
 
 describe("chart series", () => {
-  it("players online: one point per minute, gaps filled with 0, ending at the current minute", async () => {
+  it("players online: one point per minute, gaps filled with 0, ending at the last complete minute", async () => {
     await env.pool.query(
       `INSERT INTO players_online_minute (game_id, minute, players) VALUES
          ($1, '2026-03-10T12:29:00Z', 5), ($1, '2026-03-10T12:10:00Z', 3),
@@ -54,8 +54,8 @@ describe("chart series", () => {
     const points = res.json() as { minute: number; players: number }[];
 
     expect(points).toHaveLength(30);
-    expect(points[0]).toEqual({ minute: minute("2026-03-10T12:01:00Z"), players: 0 });
-    expect(points.at(-1)).toEqual({ minute: minute("2026-03-10T12:30:00Z"), players: 0 });
+    expect(points[0]).toEqual({ minute: minute("2026-03-10T12:00:00Z"), players: 0 });
+    expect(points.at(-1)).toEqual({ minute: minute("2026-03-10T12:29:00Z"), players: 5 });
     expect(points.find((p) => p.minute === minute("2026-03-10T12:29:00Z"))?.players).toBe(5);
     expect(points.find((p) => p.minute === minute("2026-03-10T12:10:00Z"))?.players).toBe(3);
     // Outside the window, and another game's row, are left out.

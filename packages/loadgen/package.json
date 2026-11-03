@@ -1,0 +1,14 @@
+{
+  "name": "@bloxlytics/loadgen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts"
+  },
+  "dependencies": {
+    "@bloxlytics/db": "*",
+    "@bloxlytics/shared": "*",
+    "ioredis": "^5.4.0"
+  }
+}

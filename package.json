@@ -8,7 +8,8 @@
     "packages/api",
     "packages/worker",
     "packages/dashboard-api",
-    "packages/dashboard"
+    "packages/dashboard",
+    "packages/loadgen"
   ],
   "engines": {
     "node": ">=22"
@@ -26,7 +27,8 @@
     "test:watch": "vitest",
     "dev:dashboard-api": "npm run dev -w @bloxlytics/dashboard-api",
     "dev:dashboard": "npm run dev -w @bloxlytics/dashboard",
-    "seed-demo": "npm run seed-demo -w @bloxlytics/worker --"
+    "seed-demo": "npm run seed-demo -w @bloxlytics/worker --",
+    "loadgen": "npm start -w @bloxlytics/loadgen --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

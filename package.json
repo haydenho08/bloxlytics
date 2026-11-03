@@ -7,7 +7,8 @@
     "packages/db",
     "packages/api",
     "packages/worker",
-    "packages/dashboard-api"
+    "packages/dashboard-api",
+    "packages/dashboard"
   ],
   "engines": {
     "node": ">=22"
@@ -19,11 +20,13 @@
     "create-game": "npm run create-game -w @bloxlytics/db --",
     "dev:api": "npm run dev -w @bloxlytics/api",
     "dev:worker": "npm run dev -w @bloxlytics/worker",
-    "typecheck": "tsc -p .",
+    "typecheck": "tsc -p . && tsc -p packages/dashboard",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev:dashboard-api": "npm run dev -w @bloxlytics/dashboard-api"
+    "dev:dashboard-api": "npm run dev -w @bloxlytics/dashboard-api",
+    "dev:dashboard": "npm run dev -w @bloxlytics/dashboard",
+    "seed-demo": "npm run seed-demo -w @bloxlytics/worker --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -34,6 +37,7 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "eslint-plugin-react-hooks": "^7.1.1"
   }
 }

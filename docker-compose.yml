@@ -1,5 +1,21 @@
 name: bloxlytics
 
+# Shared settings for every container built from this repo's Dockerfile.
+x-app: &app
+  build: .
+  image: bloxlytics-app
+  profiles: ["app"]
+  restart: unless-stopped
+  environment: &app-env
+    DATABASE_URL: postgres://bloxlytics:bloxlytics@postgres:5432/bloxlytics
+    REDIS_URL: redis://redis:6379/0
+    LOG_LEVEL: info
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -35,6 +51,59 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  # ---------------------------------------------------------------------------
+  # The application itself, in containers. Not started by `npm run infra:up`
+  # (development runs these on the host with hot reload); start the whole stack
+  # with:  docker compose --profile app up --build
+  # ---------------------------------------------------------------------------
+
+  migrate:
+    <<: *app
+    command: ["node", "--import", "tsx", "packages/db/scripts/migrate.ts"]
+    restart: "no"
+
+  api:
+    <<: *app
+    command: ["node", "--import", "tsx", "packages/api/src/main.ts"]
+    environment:
+      <<: *app-env
+      RATE_LIMIT_EVENTS_PER_SEC: ${RATE_LIMIT_EVENTS_PER_SEC:-500}
+      RATE_LIMIT_BURST: ${RATE_LIMIT_BURST:-2000}
+    ports:
+      - "8080:8080"
+    depends_on: &after-migrate
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # Scale out with:  docker compose --profile app up --scale worker=4
+  worker:
+    <<: *app
+    command: ["node", "--import", "tsx", "packages/worker/src/main.ts"]
+    depends_on: *after-migrate
+
+  # Dashboard API + the built React app on one port: http://localhost:8082
+  dashboard:
+    <<: *app
+    command: ["node", "--import", "tsx", "packages/dashboard-api/src/main.ts"]
+    environment:
+      <<: *app-env
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
+    ports:
+      - "8082:8082"
+    depends_on: *after-migrate
+
+  # Load generator, run on demand inside the same Docker network:
+  #   docker compose --profile bench run --rm loadgen --steps 2000,4000
+  loadgen:
+    <<: *app
+    profiles: ["bench"]
+    entrypoint: ["node", "--import", "tsx", "packages/loadgen/src/main.ts", "--url", "http://api:8080"]
+    command: []
+    depends_on: []
+    restart: "no"
 
 volumes:
   pgdata:

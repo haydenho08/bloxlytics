@@ -177,9 +177,12 @@ The Luau specs need Roblox Studio, so CI can't run them. They're run by hand
 
 ## Deploying
 
-See [deploy.md](deploy.md). The recommendation:
-- **Railway (~$5–10/mo):** managed Postgres + Redis, deploys the Dockerfile from GitHub.
-- **Oracle Cloud's free VM ($0):** run `docker compose` yourself, with Caddy for HTTPS.
+See [deploy.md](deploy.md). All the free options run the same `docker compose` stack:
+- **Laptop + Cloudflare quick tunnel ($0):** a public HTTPS address for testing
+  with real Roblox servers or demoing in an interview. Up only while the laptop is.
+- **Student credits or Oracle Cloud's free VM ($0):** always on. You run Docker
+  yourself, with Caddy for HTTPS.
+- **Railway (~$5–10/mo, paid):** managed Postgres + Redis, deploys the Dockerfile from GitHub.
 
 Deployment is what lets real Roblox servers reach the API: they can't call `localhost`.
 

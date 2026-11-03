@@ -200,7 +200,9 @@ Postgres and Redis as service containers) and the Docker build on every push and
 
 ## Deploying
 
-There's one Docker image; each service only changes its start command. See
-[docs/deploy.md](docs/deploy.md) for the steps. Railway gives you managed
-Postgres + Redis for roughly $5/month. Alternatively, run `docker compose` on a
-free Oracle Cloud VM.
+There's one Docker image; each service only changes its start command.
+[docs/deploy.md](docs/deploy.md) covers it, free options first:
+- **Your laptop plus a Cloudflare quick tunnel**, so published Roblox servers can reach it.
+- **Student cloud credits** for an always-on demo.
+- **A free Oracle Cloud VM.**
+- Railway, if you'd rather pay about $5/month for managed Postgres and Redis.
